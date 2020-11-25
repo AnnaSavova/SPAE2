@@ -106,9 +106,89 @@
 #include <unordered_set>
 #include <list>
 
-std::vector<std::string> dirs;
-std::unordered_map<std::string, std::list<std::string>> theTable;
-std::list<std::string> workQ;
+#include <thread>
+#include <optional>
+#include <mutex>
+
+//thread safe dirs:
+struct ddirs{
+private:
+    std::vector<std::string> ddirs, std::mutex m;
+public:
+    void push_back(std::string s){
+        std::unique_lock<std::mutex>lock(m);
+        ddirs.push_back(s);
+    }
+    int size(){
+        std::unique_lock<std::mutex>lock(m);
+        auto l = ddirs.size();
+        return l;
+    }
+};
+ddirs disr;
+
+// thread safe theTable:
+struct table {
+private:
+    std::unordered_map<std::string, std::list<std::string>> theTable, std::mutex mut;
+public:
+    auto find(std::string s){
+        std::unique_lock<std::mutex>lock(mut);
+        auto wanted = table.find(s);
+        return wanted;
+    }
+
+    auto end(){
+        std::unique_lock<std::mutex>lock(mut);
+        auto ending = table.end();
+        return ending;
+    }
+
+    void insert( std::pair<std::string name, auto brackets > ){
+        std::unique_lock<std::mutex>lock(mut);
+        return insert( { name, brackets } );
+    }
+
+};
+table theTable;
+
+// thread safe Work Queue:
+struct workQu{
+private:
+    std::list<std::string> workQu, std::mutex mutex;
+public:
+    void push_back(std::string s){
+        std::unique_lock<std::mutex>lock(mutex);
+        workQu.push_back(s);
+    }
+    int size(){
+        std::unique_lock<std::mutex>lock(mutex);
+        //auto iter = workQu.begin();
+        //auto l = 0;
+        //for(iter; iter != workQu.end(); iter++){
+        //    l++;
+        //}
+        auto l = workQu.size();
+        return l;
+    }
+
+    auto front(){
+        std::unique_lock<std::mutex>lock(mutex);
+        //auto start = workQu.begin();
+        //return (*start)
+        auto beginning = workQu.front();
+        return beginning;
+    }
+
+    void pop_front(){
+        std::unique_lock<std::mutex>lock(mutex);
+        //auto start = workQu.front();
+        //std::string beginning = *start
+        workQu.pop_front();
+    }
+
+};
+workQu workQ;
 
 std::string dirName(const char * c_str) {
   std::string s = c_str; // s takes ownership of the string content by allocating memory for it
@@ -151,7 +231,7 @@ static void process(const char *file, std::list<std::string> *ll) {
     char *p = buf;
     // 2a. skip leading whitespace
     while (isspace((int)*p)) { p++; }
-    // 2b. if match #include 
+    // 2b. if match #include
     if (strncmp(p, "#include", 8) != 0) { continue; }
     p += 8; // point to first character past #include
     // 2bi. skip leading whitespace
@@ -248,10 +328,10 @@ int main(int argc, char *argv[]) {
 
     // 3a. insert mapping from file.o to file.ext
     theTable.insert( { obj, { argv[i] } } );
-    
+
     // 3b. insert mapping from file.ext to empty list
     theTable.insert( { argv[i], { } } );
-    
+
     // 3c. append file.ext on workQ
     workQ.push_back( argv[i] );
   }
