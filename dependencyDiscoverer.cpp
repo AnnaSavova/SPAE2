@@ -347,7 +347,8 @@ int main(int argc, char *argv[]) {
     }
 
     // 4a&b. lookup dependencies and invoke 'process'
-    process(filename.c_str(), &theTable[filename]);
+    auto t = std::thread(process, filename.c_str(), &theTable[filename]);
+  //  process(filename.c_str(), &theTable[filename]);
   }
 
   // 5. for each file argument
