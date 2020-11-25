@@ -125,7 +125,7 @@ public:
         return l;
     }
 };
-ddirs disr;
+ddirs dirs;
 
 // thread safe theTable:
 struct table {
@@ -134,13 +134,13 @@ private:
 public:
     auto find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
-        auto wanted = table.find(s);
-        return wanted;
+        //auto wanted = table.find(s);
+        return table.find(s);
     }
 
-    void insert( std::pair<std::string name, auto brackets > ){
+    void insert( std::pair<std::string, std::list<std::string>> ){
         std::unique_lock<std::mutex>lock(mutex);
-        return insert( { name, brackets } );
+        return insert( std::pair<std::string, std::list<std::string>> );
     }
 
 };
@@ -149,7 +149,7 @@ table theTable;
 // thread safe Work Queue:
 struct workQu{
 private:
-    std::list<std::string> workQu, std::mutex mutex;
+    std::list<std::string> workQu; std::mutex mutex;
 public:
     void push_back(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
