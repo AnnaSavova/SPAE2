@@ -113,14 +113,14 @@
 //thread safe dirs:
 struct ddirs{
 private:
-    std::vector<std::string> ddirs, std::mutex m;
+    std::vector<std::string> ddirs; std::mutex mutex;
 public:
     void push_back(std::string s){
-        std::unique_lock<std::mutex>lock(m);
+        std::unique_lock<std::mutex>lock(mutex);
         ddirs.push_back(s);
     }
     int size(){
-        std::unique_lock<std::mutex>lock(m);
+        std::unique_lock<std::mutex>lock(mutex);
         auto l = ddirs.size();
         return l;
     }
@@ -130,22 +130,16 @@ ddirs disr;
 // thread safe theTable:
 struct table {
 private:
-    std::unordered_map<std::string, std::list<std::string>> theTable, std::mutex mut;
+    std::unordered_map<std::string, std::list<std::string>> theTable; std::mutex mutex;
 public:
     auto find(std::string s){
-        std::unique_lock<std::mutex>lock(mut);
+        std::unique_lock<std::mutex>lock(mutex);
         auto wanted = table.find(s);
         return wanted;
     }
 
-    auto end(){
-        std::unique_lock<std::mutex>lock(mut);
-        auto ending = table.end();
-        return ending;
-    }
-
     void insert( std::pair<std::string name, auto brackets > ){
-        std::unique_lock<std::mutex>lock(mut);
+        std::unique_lock<std::mutex>lock(mutex);
         return insert( { name, brackets } );
     }
 
