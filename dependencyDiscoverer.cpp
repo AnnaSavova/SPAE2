@@ -143,9 +143,15 @@ public:
         return table::end();
     }
 
-    void insert( std::pair<std::string, std::list<std::string> pairing> ){
+    void insert( std::pair<std::string, std::list<std::string>> pairing ){
         std::unique_lock<std::mutex>lock(mutex);
         return insert( pairing );
+    }
+
+    std::list<std::string> get(std::string s){
+        std::unique_lock<std::mutex>lock(mutex);
+        return &table[s];
+
     }
 
 };
@@ -270,7 +276,7 @@ static void printDependencies(std::unordered_set<std::string> *printed,
     std::string name = toProcess->front();
     toProcess->pop_front();
     // 3. lookup file in the table, yielding list of dependencies
-    std::list<std::string> *ll = &theTable[name];
+    std::list<std::string> *ll = theTable.get(name);//&theTable[name];
     // 4. iterate over dependencies
     for (auto iter = ll->begin(); iter != ll->end(); iter++) {
       // 4a. if filename is already in the printed table, continue
@@ -346,7 +352,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 4a&b. lookup dependencies and invoke 'process'
-    auto t = std::thread(process, filename.c_str(), &theTable[filename]);
+    auto t = std::thread(process, filename.c_str(), theTable.get(filename);//&theTable[filename]);
   //  process(filename.c_str(), &theTable[filename]);
   }
 
