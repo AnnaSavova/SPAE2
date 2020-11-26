@@ -116,10 +116,69 @@
 #include <unordered_set>
 #include <list>
 
+#include <thread>
+#include <optional>
+#include <mutex>
 
-std::vector<std::string> dirs;
-std::unordered_map<std::string, std::list<std::string>> theTable;
-std::list<std::string> workQ;
+std::vector<std::string> dirs
+
+// thread safe theTable:
+struct table {
+private:
+    std::unordered_map<std::string, std::list<std::string>> table, std::mutex mutex;
+public:
+    auto find(std::string s){
+        std::unique_lock<std::mutex>lock(mutex);
+        auto wanted = table::find(s);
+        return wanted;
+    }
+
+    auto end(){
+        std::unique_lock<std::mutex>lock(mutex);
+        auto ending = table::end();
+        return ending;
+    }
+
+    void insert( std::pair<std::string,std::list<std::string>> pairing){
+        std::unique_lock<std::mutex>lock(mutex);
+        return insert( pairing );
+    }
+
+};
+table theTable;
+
+// thread safe Work Queue:
+struct workQu{
+private:
+    std::list<std::string> workQu, std::mutex mutex;
+public:
+    void push_back(std::string s){
+        std::unique_lock<std::mutex>lock(mutex);
+        workQu.push_back(s);
+    }
+    int size(){
+        std::unique_lock<std::mutex>lock(mutex);
+        auto l = workQu::size();
+        return l;
+    }
+
+    auto front(){
+        std::unique_lock<std::mutex>lock(mutex);
+        //auto start = workQu.begin();
+        //return (*start)
+        auto beginning = workQu::front();
+        return beginning;
+    }
+
+    void pop_front(){
+        std::unique_lock<std::mutex>lock(mutex);
+        //auto start = workQu.front();
+        //std::string beginning = *start
+        workQu::pop_front();
+    }
+
+};
+workQu workQ;
 
 std::string dirName(const char * c_str) {
   std::string s = c_str; // s takes ownership of the string content by allocating memory for it
