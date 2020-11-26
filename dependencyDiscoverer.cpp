@@ -276,7 +276,7 @@ static void printDependencies(std::unordered_set<std::string> *printed,
     std::string name = toProcess->front();
     toProcess->pop_front();
     // 3. lookup file in the table, yielding list of dependencies
-    const auto &con1 = theTable.get(name);
+    auto &con1 = theTable.get(name);
     std::list<std::string> *ll = &con1;//&theTable.get(name);//&theTable[name];
     // 4. iterate over dependencies
     for (auto iter = ll->begin(); iter != ll->end(); iter++) {
