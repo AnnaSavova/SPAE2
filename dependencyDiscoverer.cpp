@@ -125,7 +125,7 @@ std::vector<std::string> dirs
 // thread safe theTable:
 struct table {
 private:
-    std::unordered_map<std::string, std::list<std::string>> table, std::mutex mutex;
+    std::unordered_map<std::string, std::list<std::string>> table; std::mutex mutex;
 public:
     auto find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
@@ -133,9 +133,9 @@ public:
         return wanted;
     }
 
-    auto end(){
+    std::list<std::string>::iterator end(){
         std::unique_lock<std::mutex>lock(mutex);
-        auto ending = table::end();
+        auto ending = table.end();
         return ending;
     }
 
@@ -150,7 +150,7 @@ table theTable;
 // thread safe Work Queue:
 struct workQu{
 private:
-    std::list<std::string> workQu, std::mutex mutex;
+    std::list<std::string> workQu; std::mutex mutex;
 public:
     void push_back(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
@@ -162,11 +162,11 @@ public:
         return l;
     }
 
-    auto front(){
+    std::list<std::string>::iterator front(){
         std::unique_lock<std::mutex>lock(mutex);
         //auto start = workQu.begin();
         //return (*start)
-        auto beginning = workQu::front();
+        auto beginning = workQu.front();
         return beginning;
     }
 
