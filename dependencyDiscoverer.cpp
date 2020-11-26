@@ -130,7 +130,7 @@ std::vector<std::string> dirs;
 // thread safe theTable:
 struct table {
 private:
-    std::unordered_map<std::string, std::list<std::string>> table; std::mutex mutex;
+    std::unordered_map<std::string, std::list<std::string>> ttable; std::mutex mutex;
 public:
     std::list<std::string>::iterator find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
@@ -150,7 +150,7 @@ public:
 
     std::list<std::string> get(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
-        return &table[s];
+        return &ttable[s];
 
     }
 
@@ -276,7 +276,7 @@ static void printDependencies(std::unordered_set<std::string> *printed,
     std::string name = toProcess->front();
     toProcess->pop_front();
     // 3. lookup file in the table, yielding list of dependencies
-    std::list<std::string> *ll = theTable.get(name);//&theTable[name];
+    std::list<std::string> *ll = &theTable.get(name);//&theTable[name];
     // 4. iterate over dependencies
     for (auto iter = ll->begin(); iter != ll->end(); iter++) {
       // 4a. if filename is already in the printed table, continue
@@ -352,7 +352,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 4a&b. lookup dependencies and invoke 'process'
-    auto t = std::thread(process, filename.c_str(), theTable.get(filename));//&theTable[filename]);
+    auto t = std::thread(process, filename.c_str(), &theTable.get(filename));//&theTable[filename]);
   //  process(filename.c_str(), &theTable[filename]);
   }
 
