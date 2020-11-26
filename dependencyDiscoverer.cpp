@@ -119,33 +119,47 @@
 #include <thread>
 #include <optional>
 #include <mutex>
+#include <thread>
+#include <optional>
+#include <mutex>
 
-std::vector<std::string> dirs;
+//thread safe dirs:
+struct ddirs{
+private:
+    std::vector<std::string> ddirs, std::mutex m;
+public:
+    void push_back(std::string s){
+        std::unique_lock<std::mutex>lock(m);
+        ddirs.push_back(s);
+    }
+    int size(){
+        std::unique_lock<std::mutex>lock(m);
+        auto l = ddirs.size();
+        return l;
+    }
+};
+ddirs disr;
 
 // thread safe theTable:
 struct table {
 private:
-    std::unordered_map<std::string, std::list<std::string>> ttable; std::mutex mutex;
+    std::unordered_map<std::string, std::list<std::string>> theTable, std::mutex mut;
 public:
-    std::list<std::string>::iterator find(std::string s){
-        std::unique_lock<std::mutex>lock(mutex);
-        return table::find(s);
+    auto find(std::string s){
+        std::unique_lock<std::mutex>lock(mut);
+        auto wanted = table.find(s);
+        return wanted;
     }
 
-    std::list<std::string>::iterator end(){
-        std::unique_lock<std::mutex>lock(mutex);
-        return table::end();
+    auto end(){
+        std::unique_lock<std::mutex>lock(mut);
+        auto ending = table.end();
+        return ending;
     }
 
-    void insert( std::pair<std::string, std::list<std::string>> pairing ){
-        std::unique_lock<std::mutex>lock(mutex);
-        return insert( pairing );
-    }
-
-    std::list<std::string> get(std::string s){
-        std::unique_lock<std::mutex>lock(mutex);
-        return ttable[s];
-
+    void insert( std::pair<std::string name, auto brackets > ){
+        std::unique_lock<std::mutex>lock(mut);
+        return insert( { name, brackets } );
     }
 
 };
@@ -154,7 +168,7 @@ table theTable;
 // thread safe Work Queue:
 struct workQu{
 private:
-    std::list<std::string> workQu; std::mutex mutex;
+    std::list<std::string> workQu, std::mutex mutex;
 public:
     void push_back(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
@@ -162,18 +176,27 @@ public:
     }
     int size(){
         std::unique_lock<std::mutex>lock(mutex);
+        //auto iter = workQu.begin();
+        //auto l = 0;
+        //for(iter; iter != workQu.end(); iter++){
+        //    l++;
+        //}
         auto l = workQu.size();
         return l;
     }
 
     auto front(){
         std::unique_lock<std::mutex>lock(mutex);
+        //auto start = workQu.begin();
+        //return (*start)
         auto beginning = workQu.front();
         return beginning;
     }
 
     void pop_front(){
         std::unique_lock<std::mutex>lock(mutex);
+        //auto start = workQu.front();
+        //std::string beginning = *start
         workQu.pop_front();
     }
 
@@ -261,7 +284,7 @@ static void printDependencies(std::unordered_set<std::string> *printed,
     std::string name = toProcess->front();
     toProcess->pop_front();
     // 3. lookup file in the table, yielding list of dependencies
-    std::list<std::string> *ll = &theTable.get(name);//&con1;//&theTable[name];
+    std::list<std::string> *ll = &theTable[name];
     // 4. iterate over dependencies
     for (auto iter = ll->begin(); iter != ll->end(); iter++) {
       // 4a. if filename is already in the printed table, continue
@@ -337,8 +360,6 @@ int main(int argc, char *argv[]) {
     }
 
     // 4a&b. lookup dependencies and invoke 'process'
-    //const auto &con2 = theTable.get(filename);
-    //auto t = std::thread(process, filename.c_str(), &con2);
     process(filename.c_str(), &theTable[filename]);
   }
 
