@@ -132,20 +132,20 @@ struct table {
 private:
     std::unordered_map<std::string, std::list<std::string>> theTable; std::mutex mutex;
 public:
-    auto find(std::string s){
+    std::list<std::string>::iterator find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
         //auto wanted = table.find(s);
         return table::find(s);
     }
 
-    auto end(){
+    std::list<std::string>::iterator end(){
         std::unique_lock<std::mutex>lock(mutex);
-        return table::end;
+        return table::end();
     }
 
-    void insert( std::pair<std::string, std::list<std::string>> ){
+    void insert( std::pair<std::string, std::list<std::string> pairing> ){
         std::unique_lock<std::mutex>lock(mutex);
-        return insert( std::pair<std::string, std::list<std::string>> );
+        return insert( pairing );
     }
 
 };
