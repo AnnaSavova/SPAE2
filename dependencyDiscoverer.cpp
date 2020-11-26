@@ -148,10 +148,6 @@ public:
         return insert( std::pair<std::string, std::list<std::string>> );
     }
 
-    auto operator[](<std::string> s){
-        return table(this, s);
-    }
-
 };
 table theTable;
 
