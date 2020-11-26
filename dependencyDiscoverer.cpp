@@ -1,4 +1,14 @@
 /*
+ * SP Exercise 1b
+ *
+ * Name: Anna Savova
+ * Matriculation Number: 2327851s
+ *
+ * This is my own work as defined in the Academic Ethics
+ * agreement I have signed.
+ */
+
+/*
  * usage: ./dependencyDiscoverer [-Idir] ... file.c|file.l|file.y ...
  *
  * processes the c/yacc/lex source file arguments, outputting the dependencies
@@ -110,21 +120,6 @@
 #include <optional>
 #include <mutex>
 
-//thread safe dirs:
-//struct ddirs{
-//private:
-//    std::vector<std::string> ddirs; std::mutex mutex;
-//public:
-//    void push_back(std::string s){
-//        std::unique_lock<std::mutex>lock(mutex);
-//        ddirs.push_back(s);
-//    }
-//    int size(){
-//        std::unique_lock<std::mutex>lock(mutex);
-//        auto l = ddirs.size();
-//        return l;
-//    }
-//};
 std::vector<std::string> dirs;
 
 // thread safe theTable:
@@ -134,7 +129,6 @@ private:
 public:
     std::list<std::string>::iterator find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
-        //auto wanted = table.find(s);
         return table::find(s);
     }
 
@@ -168,27 +162,18 @@ public:
     }
     int size(){
         std::unique_lock<std::mutex>lock(mutex);
-        //auto iter = workQu.begin();
-        //auto l = 0;
-        //for(iter; iter != workQu.end(); iter++){
-        //    l++;
-        //}
         auto l = workQu.size();
         return l;
     }
 
     auto front(){
         std::unique_lock<std::mutex>lock(mutex);
-        //auto start = workQu.begin();
-        //return (*start)
         auto beginning = workQu.front();
         return beginning;
     }
 
     void pop_front(){
         std::unique_lock<std::mutex>lock(mutex);
-        //auto start = workQu.front();
-        //std::string beginning = *start
         workQu.pop_front();
     }
 
@@ -352,9 +337,9 @@ int main(int argc, char *argv[]) {
     }
 
     // 4a&b. lookup dependencies and invoke 'process'
-    const auto &con2 = theTable.get(filename);
-    auto t = std::thread(process, filename.c_str(), &con2);//&theTable.get(filename));//&theTable[filename]);
-  //  process(filename.c_str(), &theTable[filename]);
+    //const auto &con2 = theTable.get(filename);
+    //auto t = std::thread(process, filename.c_str(), &con2);
+    process(filename.c_str(), &theTable[filename]);
   }
 
   // 5. for each file argument
