@@ -109,90 +109,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 #include <list>
-#include <thread>
-#include <optional>
-#include <mutex>
-//thread safe dirs:
-struct ddirs{
-private:
-    std::vector<std::string> ddirs, std::mutex m;
-public:
-    void push_back(std::string s){
-        std::unique_lock<std::mutex>lock(m);
-        ddirs.push_back(s);
-    }
-    int size(){
-        std::unique_lock<std::mutex>lock(m);
-        auto l = ddirs.size();
-        return l;
-    }
-};
-ddirs disr;
-// thread safe theTable:
-struct table {
-private:
-    std::unordered_map<std::string, std::list<std::string>> theTable, std::mutex mut;
-public:
-    auto find(std::string s){
-        std::unique_lock<std::mutex>lock(mut);
-        auto wanted = table.find(s);
-        return wanted;
-    }
-    auto end(){
-        std::unique_lock<std::mutex>lock(mut);
-        auto ending = table.end();
-        return ending;
-    }
-    void insert( std::pair<std::string name, auto brackets > ){
-        std::unique_lock<std::mutex>lock(mut);
-        return insert( { name, brackets } );
-    }
-};
-table theTable;
-// thread safe Work Queue:
-struct workQu{
-private:
-    std::list<std::string> workQu, std::mutex mutex;
-public:
-    void push_back(std::string s){
-        std::unique_lock<std::mutex>lock(mutex);
-        workQu.push_back(s);
-    }
-    int size(){
-        std::unique_lock<std::mutex>lock(mutex);
-        //auto iter = workQu.begin();
-        //auto l = 0;
-        //for(iter; iter != workQu.end(); iter++){
-        //    l++;
-        //}
-        auto l = workQu.size();
-        return l;
-    }
-    auto front(){
-        std::unique_lock<std::mutex>lock(mutex);
-        //auto start = workQu.begin();
-        //return (*start)
-        auto beginning = workQu.front();
-        return beginning;
-    }
-    void pop_front(){
-        std::unique_lock<std::mutex>lock(mutex);
-        //auto start = workQu.front();
-        //std::string beginning = *start
-        workQu.pop_front();
-    }
-};
-workQu workQ;
+
+
+std::vector<std::string> dirs;
+std::unordered_map<std::string, std::list<std::string>> theTable;
+std::list<std::string> workQ;
+
 std::string dirName(const char * c_str) {
   std::string s = c_str; // s takes ownership of the string content by allocating memory for it
   if (s.back() != '/') { s += '/'; }
   return s;
 }
+
 std::pair<std::string, std::string> parseFile(const char* c_file) {
   std::string file = c_file;
   std::string::size_type pos = file.rfind('.');
@@ -202,6 +136,7 @@ std::pair<std::string, std::string> parseFile(const char* c_file) {
     return {file.substr(0, pos), file.substr(pos + 1)};
   }
 }
+
 // open file using the directory search path constructed in main()
 static FILE *openFile(const char *file) {
   FILE *fd;
@@ -213,6 +148,7 @@ static FILE *openFile(const char *file) {
   }
   return NULL;
 }
+
 // process file, looking for #include "foo.h" lines
 static void process(const char *file, std::list<std::string> *ll) {
   char buf[4096], name[4096];
@@ -253,11 +189,13 @@ static void process(const char *file, std::list<std::string> *ll) {
   // 3. close file
   fclose(fd);
 }
+
 // iteratively print dependencies
 static void printDependencies(std::unordered_set<std::string> *printed,
                               std::list<std::string> *toProcess,
                               FILE *fd) {
   if (!printed || !toProcess || !fd) return;
+
   // 1. while there is still a file in the toProcess list
   while ( toProcess->size() > 0 ) {
     // 2. fetch next file to process
@@ -278,9 +216,11 @@ static void printDependencies(std::unordered_set<std::string> *printed,
     }
   }
 }
+
 int main(int argc, char *argv[]) {
   // 1. look up CPATH in environment
   char *cpath = getenv("CPATH");
+
   // determine the number of -Idir arguments
   int i;
   for (i = 1; i < argc; i++) {
@@ -288,6 +228,7 @@ int main(int argc, char *argv[]) {
       break;
   }
   int start = i;
+
   // 2. start assembling dirs vector
   dirs.push_back( dirName("./") ); // always search current directory first
   for (i = 1; i < start; i++) {
@@ -304,6 +245,7 @@ int main(int argc, char *argv[]) {
     dirs.push_back( str.substr(last) );
   }
   // 2. finished assembling dirs vector
+
   // 3. for each file argument ...
   for (i = start; i < argc; i++) {
     std::pair<std::string, std::string> pair = parseFile(argv[i]);
@@ -312,22 +254,29 @@ int main(int argc, char *argv[]) {
               pair.second.c_str());
       return -1;
     }
+
     std::string obj = pair.first + ".o";
+
     // 3a. insert mapping from file.o to file.ext
     theTable.insert( { obj, { argv[i] } } );
+
     // 3b. insert mapping from file.ext to empty list
     theTable.insert( { argv[i], { } } );
+
     // 3c. append file.ext on workQ
     workQ.push_back( argv[i] );
   }
+
   // 4. for each file on the workQ
   while ( workQ.size() > 0 ) {
     std::string filename = workQ.front();
     workQ.pop_front();
+
     if (theTable.find(filename) == theTable.end()) {
       fprintf(stderr, "Mismatch between table and workQ\n");
       return -1;
     }
+
     // 4a&b. lookup dependencies and invoke 'process'
     process(filename.c_str(), &theTable[filename]);
   }
