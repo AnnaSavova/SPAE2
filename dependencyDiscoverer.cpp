@@ -150,7 +150,7 @@ public:
 
     std::list<std::string> get(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
-        return &ttable[s];
+        return ttable[s];
 
     }
 
