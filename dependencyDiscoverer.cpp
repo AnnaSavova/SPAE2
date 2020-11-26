@@ -130,7 +130,7 @@ std::vector<std::string> dirs;
 // thread safe theTable:
 struct table {
 private:
-    std::unordered_map<std::string, std::list<std::string>> theTable; std::mutex mutex;
+    std::unordered_map<std::string, std::list<std::string>> table; std::mutex mutex;
 public:
     std::list<std::string>::iterator find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
@@ -352,7 +352,7 @@ int main(int argc, char *argv[]) {
     }
 
     // 4a&b. lookup dependencies and invoke 'process'
-    auto t = std::thread(process, filename.c_str(), theTable.get(filename);//&theTable[filename]);
+    auto t = std::thread(process, filename.c_str(), theTable.get(filename));//&theTable[filename]);
   //  process(filename.c_str(), &theTable[filename]);
   }
 
