@@ -111,21 +111,21 @@
 #include <mutex>
 
 //thread safe dirs:
-struct ddirs{
-private:
-    std::vector<std::string> ddirs; std::mutex mutex;
-public:
-    void push_back(std::string s){
-        std::unique_lock<std::mutex>lock(mutex);
-        ddirs.push_back(s);
-    }
-    int size(){
-        std::unique_lock<std::mutex>lock(mutex);
-        auto l = ddirs.size();
-        return l;
-    }
-};
-ddirs dirs;
+//struct ddirs{
+//private:
+//    std::vector<std::string> ddirs; std::mutex mutex;
+//public:
+//    void push_back(std::string s){
+//        std::unique_lock<std::mutex>lock(mutex);
+//        ddirs.push_back(s);
+//    }
+//    int size(){
+//        std::unique_lock<std::mutex>lock(mutex);
+//        auto l = ddirs.size();
+//        return l;
+//    }
+//};
+std::vector<std::string> dirs;
 
 // thread safe theTable:
 struct table {
@@ -135,12 +135,21 @@ public:
     auto find(std::string s){
         std::unique_lock<std::mutex>lock(mutex);
         //auto wanted = table.find(s);
-        return table.find(s);
+        return table::find(s);
+    }
+
+    auto end(){
+        std::unique_lock<std::mutex>lock(mutex);
+        return table::end;
     }
 
     void insert( std::pair<std::string, std::list<std::string>> ){
         std::unique_lock<std::mutex>lock(mutex);
         return insert( std::pair<std::string, std::list<std::string>> );
+    }
+
+    auto operator[](<std::string> s){
+        return table(this, s);
     }
 
 };
